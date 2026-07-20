@@ -1,0 +1,44 @@
+================================================================================
+            PANDUAN DEPLOY KE DOMAINESIA - LogKlikDSI
+================================================================================
+
+1. LOGIN KE PANEL DOMAINESIA
+   - Gunakan URL dan Kredensial yang dikirim ke Email Anda.
+
+2. BUAT DATABASE MYSQL
+   - Masuk ke menu 'MySQL® Databases'.
+   - Buat database baru (misal: dsi_logdb).
+   - Buat user database baru dan HUBUNGKAN ke database tersebut.
+   - PASTIKAN 'ALL PRIVILEGES' terpilih.
+
+3. SETTING PHP (PENTING UNTUK MESIN)
+   - Masuk ke menu 'Select PHP Version'.
+   - Pilih PHP 7.4 (Paling stabil untuk projek ini).
+   - Pastikan extension: pdo_mysql, mysqli, gd, curl sudah aktif.
+
+4. UPLOAD FILE
+   - Masuk ke 'File Manager'.
+   - Buka folder 'public_html'.
+   - Upload file zip project Anda.
+   - Klik kanan pada zip lalu 'Extract'.
+
+5. KONFIGURASI `dbase.php`
+   - Klik kanan file dbase.php lalu 'Edit'.
+   - Masukkan nama_db, user_db, dan pass_db yang baru saja Anda buat.
+
+6. IMPORT DATABASE (SQL)
+   - Masuk ke 'phpMyAdmin'.
+   - Pilih database Anda.
+   - Klik 'Import' lalu pilih file .sql hasil export dari laptop.
+
+7. AGAR TERBACA MESIN SEMPURNA (SEO)
+   - Buka domain Anda di browser: tujuandomain.com/sitemap_generator.php
+   - Ini akan memperbarui file sitemap.xml Anda otomatis.
+
+8. KEAMANAN (HTTPS)
+   - Pastikan SSL sudah aktif (Let's Encrypt gratis di DomaiNesia).
+   - Cek apakah web sudah bisa diakses dengan https://
+
+================================================================================
+Hubungi Support DomaiNesia via Live Chat jika ada kendala Whitelist IP Mesin.
+================================================================================

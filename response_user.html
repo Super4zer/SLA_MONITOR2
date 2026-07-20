@@ -1,0 +1,216 @@
+
+		<HTML>
+		<HEAD><TITLE></TITLE>
+		<meta http-equiv='Content-Type' content='text/html;'>
+		<LINK href='../css/Secutime.css' type=text/css rel=stylesheet>
+		<LINK href='../css/list.css' type=text/css rel=stylesheet>
+		<SCRIPT language=javascript src='../js/list.js'></SCRIPT>
+		<SCRIPT language=javascript src='../js/gen.js'></SCRIPT>
+
+		</HEAD>
+		
+		<BODY bgColor=#ffffff>
+                <SPAN class=HeaderText>User</SPAN><BR>
+                <HR>
+
+		<table width=100% border=0 cellpadding=0 cellspacing=0 align=center>
+		<form name=mainform method=post action='/csl/user?action=del' onsubmit='return uidcheck(document.mainform.uid,"Error Input!");'>
+		<TR><TD><table width=100% border=0 cellpadding=0 cellspacing=0 align=center>
+
+		<script>function CWX(ids){self.location.href='/csl/user?did='+ids;}</script>
+
+                <TR><TD width=40%><Table valign=top width=100%><TR><TD width=40% class=nrow><B>Department</b></td><TD>&nbsp;<select name=did onchange='CWX(this.value);'><option selected value=0>All</option></select></td></tr></table></td><TD>Select a department from the department drop-down list, that is, to list the employee information in this department, and select ALL to list all staff information</td></tr>
+		
+		<TR><TD width=40%><Table valign=top width=100%><TR><TD width=40% class=nrow><B>ID Number</b></td><TD>&nbsp;<input class=inputbox type=text size=10 maxlength=10 name=Search>&nbsp;&nbsp;
+		
+		<script>function OnSearch(ids){self.location.href='/csl/user?did=0&uid='+ids;}</script>
+		
+		<input type=button class=inputboxex onclick='OnSearch(Search.value)' value=Search></td></tr></table></td><TD>In & Out JOB NUMBER (must input digits but not include the other characters, the digit should be less than 9 digits) that is to search the employee information of this job number</td></tr></table>
+		</td></TR><TR><TD height=5></td></tr><TR><TD>
+		<div class='t_i'> 
+		<div class='t_i_h' id='hh'> 
+        	<div class='ee'> 
+            	<table cellpadding=2 cellspacing=2 border=0> 
+             	<tr class=table_header> 
+                <td class=titleLeft width=5%><a href='javascript:selectcheck(document.mainform.uid,0)'><img src=../image/sel.gif border=0></a></td>
+		<td class=titleNormal width=25%>Department</td> 
+                <td class=titleNormal width=15%>ID Number</td> 
+                <td class=titleNormal width=15%>Name</td> 
+                <td class=titleormal width=10%>Card</td> 
+                <td class=titleormal width=10%>Group</td> 
+                <td class=titleNormal width=10%>Privilege</td> 
+		<td class=titleNormal width=10%>Option</td>
+                </tr> </table> 
+        	</div> 
+		</div> 
+    		<div class='cc' id='cc' onscroll='list_t()'> 
+        	<table cellpadding=2 cellspacing=2 border=0>
+	
+            		<tr bgcolor=#d1d7dA> 
+                	<td width=5%><input type=checkbox name=uid value=1></td> 
+			<td width=25%></td>
+                	<td width=15%>1</td> 
+                	<td width=15%>Shafwan</td> 
+                	<td width=10%>0</td> 
+                	<td width=10%>Group1</td> 
+                	<td width=10%>Super Administrator</td>
+			<td width=10%><a href='/csl/user?action=modify&uid=1'>Option<a></td> 
+            		</tr> 
+		
+            		<tr bgcolor=#ffffff> 
+                	<td width=5%><input type=checkbox name=uid value=2></td> 
+			<td width=25%></td>
+                	<td width=15%>2</td> 
+                	<td width=15%>Reza</td> 
+                	<td width=10%>0</td> 
+                	<td width=10%>Group1</td> 
+                	<td width=10%>Super Administrator</td>
+			<td width=10%><a href='/csl/user?action=modify&uid=2'>Option<a></td> 
+            		</tr> 
+		
+            		<tr bgcolor=#d1d7dA> 
+                	<td width=5%><input type=checkbox name=uid value=5></td> 
+			<td width=25%></td>
+                	<td width=15%>3</td> 
+                	<td width=15%>Edi</td> 
+                	<td width=10%>0</td> 
+                	<td width=10%>Group1</td> 
+                	<td width=10%>User</td>
+			<td width=10%><a href='/csl/user?action=modify&uid=5'>Option<a></td> 
+            		</tr> 
+		
+            		<tr bgcolor=#ffffff> 
+                	<td width=5%><input type=checkbox name=uid value=7></td> 
+			<td width=25%></td>
+                	<td width=15%>11</td> 
+                	<td width=15%>Yoppy</td> 
+                	<td width=10%>0</td> 
+                	<td width=10%>Group1</td> 
+                	<td width=10%>User</td>
+			<td width=10%><a href='/csl/user?action=modify&uid=7'>Option<a></td> 
+            		</tr> 
+		
+            		<tr bgcolor=#d1d7dA> 
+                	<td width=5%><input type=checkbox name=uid value=12></td> 
+			<td width=25%></td>
+                	<td width=15%>12</td> 
+                	<td width=15%>Anwar</td> 
+                	<td width=10%>0</td> 
+                	<td width=10%>Group1</td> 
+                	<td width=10%>User</td>
+			<td width=10%><a href='/csl/user?action=modify&uid=12'>Option<a></td> 
+            		</tr> 
+		
+            		<tr bgcolor=#ffffff> 
+                	<td width=5%><input type=checkbox name=uid value=3></td> 
+			<td width=25%></td>
+                	<td width=15%>21</td> 
+                	<td width=15%>Dona</td> 
+                	<td width=10%>0</td> 
+                	<td width=10%>Group1</td> 
+                	<td width=10%>User</td>
+			<td width=10%><a href='/csl/user?action=modify&uid=3'>Option<a></td> 
+            		</tr> 
+		
+            		<tr bgcolor=#d1d7dA> 
+                	<td width=5%><input type=checkbox name=uid value=4></td> 
+			<td width=25%></td>
+                	<td width=15%>22</td> 
+                	<td width=15%>Najib</td> 
+                	<td width=10%>0</td> 
+                	<td width=10%>Group1</td> 
+                	<td width=10%>User</td>
+			<td width=10%><a href='/csl/user?action=modify&uid=4'>Option<a></td> 
+            		</tr> 
+		
+            		<tr bgcolor=#ffffff> 
+                	<td width=5%><input type=checkbox name=uid value=6></td> 
+			<td width=25%></td>
+                	<td width=15%>31</td> 
+                	<td width=15%>Huda</td> 
+                	<td width=10%>0</td> 
+                	<td width=10%>Group1</td> 
+                	<td width=10%>User</td>
+			<td width=10%><a href='/csl/user?action=modify&uid=6'>Option<a></td> 
+            		</tr> 
+		
+            		<tr bgcolor=#d1d7dA> 
+                	<td width=5%><input type=checkbox name=uid value=8></td> 
+			<td width=25%></td>
+                	<td width=15%>32</td> 
+                	<td width=15%>Rizky</td> 
+                	<td width=10%>0</td> 
+                	<td width=10%>Group1</td> 
+                	<td width=10%>User</td>
+			<td width=10%><a href='/csl/user?action=modify&uid=8'>Option<a></td> 
+            		</tr> 
+		
+            		<tr bgcolor=#ffffff> 
+                	<td width=5%><input type=checkbox name=uid value=9></td> 
+			<td width=25%></td>
+                	<td width=15%>33</td> 
+                	<td width=15%>Aziz</td> 
+                	<td width=10%>0</td> 
+                	<td width=10%>Group1</td> 
+                	<td width=10%>User</td>
+			<td width=10%><a href='/csl/user?action=modify&uid=9'>Option<a></td> 
+            		</tr> 
+		
+            		<tr bgcolor=#d1d7dA> 
+                	<td width=5%><input type=checkbox name=uid value=10></td> 
+			<td width=25%></td>
+                	<td width=15%>34</td> 
+                	<td width=15%>Tabi</td> 
+                	<td width=10%>0</td> 
+                	<td width=10%>Group1</td> 
+                	<td width=10%>User</td>
+			<td width=10%><a href='/csl/user?action=modify&uid=10'>Option<a></td> 
+            		</tr> 
+		
+            		<tr bgcolor=#ffffff> 
+                	<td width=5%><input type=checkbox name=uid value=11></td> 
+			<td width=25%></td>
+                	<td width=15%>35</td> 
+                	<td width=15%>Haka</td> 
+                	<td width=10%>0</td> 
+                	<td width=10%>Group1</td> 
+                	<td width=10%>User</td>
+			<td width=10%><a href='/csl/user?action=modify&uid=11'>Option<a></td> 
+            		</tr> 
+		
+            		<tr bgcolor=#d1d7dA> 
+                	<td width=5%><input type=checkbox name=uid value=13></td> 
+			<td width=25%></td>
+                	<td width=15%>36</td> 
+                	<td width=15%>Bagus</td> 
+                	<td width=10%>0</td> 
+                	<td width=10%>Group1</td> 
+                	<td width=10%>User</td>
+			<td width=10%><a href='/csl/user?action=modify&uid=13'>Option<a></td> 
+            		</tr> 
+		
+            		<tr bgcolor=#ffffff> 
+                	<td width=5%><input type=checkbox name=uid value=14></td> 
+			<td width=25%></td>
+                	<td width=15%>37</td> 
+                	<td width=15%>Faiz</td> 
+                	<td width=10%>0</td> 
+                	<td width=10%>Group1</td> 
+                	<td width=10%>User</td>
+			<td width=10%><a href='/csl/user?action=modify&uid=14'>Option<a></td> 
+            		</tr> 
+		
+		</table></div></div>
+		<TABLE width=100%>
+		<TR height=20 align=center><TD><div class='t_i'>
+		<input type=button class=button value='First Page' onclick=dataquery('/csl/user?last=20')>
+		<input type=button class=button value='Pre Page' onclick=dataquery('/csl/user?first=0&last=20')>
+		<input type=button class=button value='Next Page' onclick=dataquery('/csl/user?first=0&last=14')>
+		<input type=button class=button value='Last Page' onclick=dataquery('/csl/user?first=0&last=14')>
+		</td></tr><tr height=35><TD><input class=inputboxex type=submit class=button value=Delete>&nbsp;&nbsp;Delete selected employee information</td></tr></form></table>
+		<TABLE width=100%>
+        	<TBODY>
+        	<TR align=right>
+        	<TD><BR><BR><B>Copyright &copy; 2006-2009 All Right Reserved</B></TD></TR></TBODY></TABLE>
+		</BODY></HTML>
+	

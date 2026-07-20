@@ -1,0 +1,30 @@
+# PANDUAN DEPLOY KE HOSTING (LOGKLIK DSI)
+
+Jika Anda ingin memindahkan sistem ini ke Hosting (CPanel/VPS), ikuti langkah-langkah ini agar ADMS tetap berjalan lancar.
+
+## 1. File Yang Wajib Di-Upload
+Copy folder "logklikdsi-main" ke hosting (misal ke public_html). File-file KRUSIAL:
+- /iclock/ (Seluruh isinya: cdata.php & .htaccess)
+- dbase.php (Koneksi database)
+- 65_cloud_monitor.php (Monitor Real-time)
+- 65_cloud_monitor_api.php (Mesin API Monitor)
+- storage/logs/ (Pastikan folder ini ada dan bisa ditulisi/writable)
+
+## 2. Database Setup di Hosting
+1. Masuk ke PHPMyAdmin di CPanel hosting Anda.
+2. Import file database: "production_ready_db.sql" yang ada di folder ini.
+3. Setelah import, buka file "dbase.php" di hosting dan ganti bagian Username/Password database sesuai dengan detail di Hosting Anda.
+
+## 3. Setting Mesin Fingerprint (FINAL)
+Setelah dihosting, ganti settingan di mesin:
+- Server Address: dsi-jaya-anda.com (Ganti dengan domain hosting Anda)
+- Server Port: 80
+- Enable Domain Name: Yes
+
+## 4. Cara Monitoring
+Bapak cukup buka alamat: domain-hosting-anda.com/index.php?par=65
+Status mesin akan langsung terbaca Online/Offline secara akurat di sana.
+
+---------------------------------------------------------------------
+SEMUA SUDAH SIAP. SELAMAT MENCOBA DI HOSTING!
+---------------------------------------------------------------------
