@@ -16,12 +16,12 @@ foreach ($lines as $line) {
     }
 }
 
-// Menggunakan nama kunci yang SESUAI dengan hasil debug
-$servername = $env['DB_HOST'];
-$port       = $env['DB_PORT'];
-$dbname     = $env['DB_NAME'];
-$username   = $env['DB_USERNAME']; // Sesuaikan dengan DB_USERNAME
-$password   = $env['DB_PASSWORD']; // Sesuaikan dengan DB_PASSWORD
+// Menggunakan nama kunci dengan fallback yang fleksibel
+$servername = $env['DB_HOST'] ?? '127.0.0.1';
+$port       = $env['DB_PORT'] ?? '3306';
+$dbname     = $env['DB_NAME'] ?? 'logklikdsi';
+$username   = $env['DB_USERNAME'] ?? $env['DB_USER'] ?? 'root';
+$password   = $env['DB_PASSWORD'] ?? $env['DB_PASS'] ?? '';
 
 $secret_key = isset($env['SECRET_KEY']) ? $env['SECRET_KEY'] : 'default_secret';
 define('SECRET_KEY', $secret_key);

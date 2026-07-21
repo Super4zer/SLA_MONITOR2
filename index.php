@@ -763,13 +763,13 @@ if (isset($_GET['par']) && $_GET['par'] == '68' && isset($_GET['export']) && $_G
                     } else if ($_GET['par'] == '77') {
                       include "77_lap_log_cs.php";
                     } else if ($_GET['par'] == '78') {
-                      echo '<iframe src="http://localhost:8001/dashboard" style="width:100%; height:800px; border:none; overflow:hidden;"></iframe>';
+                      echo '<iframe src="/SLA_MONITORING/public/index.php/dashboard" style="width:100%; height:800px; border:none; overflow:hidden;"></iframe>';
                     } else if ($_GET['par'] == '79') {
-                      echo '<iframe src="http://localhost:8001/agen-cs" style="width:100%; height:800px; border:none; overflow:hidden;"></iframe>';
+                      echo '<iframe src="/SLA_MONITORING/public/index.php/agen-cs" style="width:100%; height:800px; border:none; overflow:hidden;"></iframe>';
                     } else if ($_GET['par'] == '80') {
-                      echo '<iframe src="http://localhost:8001/grub" style="width:100%; height:800px; border:none; overflow:hidden;"></iframe>';
+                      echo '<iframe src="/SLA_MONITORING/public/index.php/grub" style="width:100%; height:800px; border:none; overflow:hidden;"></iframe>';
                     } else if ($_GET['par'] == '81') {
-                      echo '<iframe src="http://localhost:8001/laporan" style="width:100%; height:800px; border:none; overflow:hidden;"></iframe>';
+                      echo '<iframe src="/SLA_MONITORING/public/index.php/laporan" style="width:100%; height:800px; border:none; overflow:hidden;"></iframe>';
                     }
                   } else {
                     include "home.php";
