@@ -8,7 +8,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SLA_MONITOR_DIR="$SCRIPT_DIR"
 SLA_BACKEND_DIR="$SCRIPT_DIR/SLA_MONITORING"
-PHP_INI="/home/ridz/Documents/php.ini"
+PHP_INI="/home/root/Documents/php.ini"
 
 # Warna untuk output
 RED='\033[0;31m'
