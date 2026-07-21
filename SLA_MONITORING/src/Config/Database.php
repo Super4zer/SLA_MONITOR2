@@ -19,11 +19,11 @@ class Database
     {
         if (self::$instance === null) {
             // Mengambil konfigurasi dari environment variables
-            $host   = Env::get('DB_HOST', '127.0.0.1');
-            $port   = Env::get('DB_PORT', '3306');
-            $dbName = Env::get('DB_NAME', 'sla_monitoring');
-            $user   = Env::get('DB_USER') ?? Env::get('DB_USERNAME') ?? 'root';
-            $pass   = Env::get('DB_PASS') ?? Env::get('DB_PASSWORD') ?? 'pttra678';
+            $host   = Env::get('DB_HOST') ?: '127.0.0.1';
+            $port   = Env::get('DB_PORT') ?: '3306';
+            $dbName = Env::get('DB_NAME') ?: Env::get('DB_DATABASE') ?: 'logklikdsi';
+            $user   = Env::get('DB_USER') ?: Env::get('DB_USERNAME') ?: 'root';
+            $pass   = Env::get('DB_PASS') ?? Env::get('DB_PASSWORD') ?? '';
 
             $dsn = "mysql:host={$host};port={$port};dbname={$dbName};charset=utf8mb4";
 

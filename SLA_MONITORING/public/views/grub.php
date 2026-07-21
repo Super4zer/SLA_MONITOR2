@@ -2,6 +2,7 @@
 $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
 $isSubfolder = str_contains($scriptName, 'SLA_MONITORING');
 $assetBase = $isSubfolder ? '/SLA_MONITORING/public' : '';
+$apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
 ?>
 <!doctype html>
 <html lang="id">
@@ -317,7 +318,8 @@ $assetBase = $isSubfolder ? '/SLA_MONITORING/public' : '';
     }
 
     // 3. Global State untuk Cache Data Tabel
-    const API_GROUP_URL = '/api/groups';
+    const API_BASE_URL = '<?php echo $apiBase; ?>';
+    const API_GROUP_URL = API_BASE_URL + '/groups';
     const tableBody = document.getElementById('grubTableBody');
     let localGroupsCache = []; // Menyimpan data sementara untuk kemudahan Edit
 
@@ -418,7 +420,7 @@ $assetBase = $isSubfolder ? '/SLA_MONITORING/public' : '';
         };
 
         try {
-            const response = await fetch('/api/groups/update', {
+            const response = await fetch(API_BASE_URL + '/groups/update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -453,7 +455,7 @@ $assetBase = $isSubfolder ? '/SLA_MONITORING/public' : '';
         const id = document.getElementById('deleteId').value;
 
         try {
-            const response = await fetch('/api/groups/delete', {
+            const response = await fetch(API_BASE_URL + '/groups/delete', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

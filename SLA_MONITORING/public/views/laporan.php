@@ -1,31 +1,20 @@
 <?php
-if (getenv('DB_HOST') === false) {
-  $envPath = dirname(__DIR__, 2) . '/.env';
-  if (!file_exists($envPath)) {
-    $envPath = dirname(__DIR__, 3) . '/.env';
-  }
-  if (file_exists($envPath)) {
-    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-      $line = trim($line);
-      if ($line === '' || strpos($line, '#') === 0 || strpos($line, '=') === false) {
-        continue;
-      }
-      list($key, $value) = array_map('trim', explode('=', $line, 2));
-      $value = trim($value, " \t\n\r\0\x0B\"'");
-      if (getenv($key) === false) {
-        putenv("{$key}={$value}");
-        $_ENV[$key] = $value;
-      }
-    }
+// Ensure autoloader and Env loader are loaded if file is accessed directly
+if (!class_exists('App\Config\Database')) {
+  if (file_exists(__DIR__ . '/../../vendor/autoload.php')) {
+    require_once __DIR__ . '/../../vendor/autoload.php';
   }
 }
 
-$DB_HOST = getenv('DB_HOST') ?: '127.0.0.1';
-$DB_PORT = getenv('DB_PORT') ?: '3306';
-$DB_NAME = getenv('DB_NAME') ?: 'sla_monitoring';
-$DB_USER = getenv('DB_USER') ?: getenv('DB_USERNAME') ?: 'root';
-$DB_PASS = getenv('DB_PASS') ?: getenv('DB_PASSWORD') ?: '';
+if (class_exists('App\Config\Env')) {
+  try {
+    if (file_exists(__DIR__ . '/../../.env')) {
+      App\Config\Env::load(__DIR__ . '/../../.env');
+    } elseif (file_exists(__DIR__ . '/../../../.env')) {
+      App\Config\Env::load(__DIR__ . '/../../../.env');
+    }
+  } catch (Throwable $e) {}
+}
 
 // Deteksi apakah berjalan di subfolder
 $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
@@ -33,13 +22,8 @@ $isSubfolder = str_contains($scriptName, 'SLA_MONITORING');
 $assetBase = $isSubfolder ? '/SLA_MONITORING/public' : '';
 
 try {
-  $pdo = new PDO(
-    "mysql:host={$DB_HOST};port={$DB_PORT};dbname={$DB_NAME};charset=utf8mb4",
-    $DB_USER,
-    $DB_PASS,
-    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
-  );
-} catch (PDOException $e) {
+  $pdo = App\Config\Database::getConnection();
+} catch (Throwable $e) {
   if (isset($_GET['action'])) {
     header('Content-Type: application/json');
     echo json_encode(['error' => 'Koneksi database gagal: ' . $e->getMessage()]);

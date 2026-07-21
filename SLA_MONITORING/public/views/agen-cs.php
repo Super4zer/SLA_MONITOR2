@@ -2,6 +2,7 @@
 $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
 $isSubfolder = str_contains($scriptName, 'SLA_MONITORING');
 $assetBase = $isSubfolder ? '/SLA_MONITORING/public' : '';
+$apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
 ?>
 <!doctype html>
 <html lang="id">
@@ -378,7 +379,8 @@ $assetBase = $isSubfolder ? '/SLA_MONITORING/public' : '';
     }
 
     // 3. Global State
-    const API_STAFF_URL = '/api/staff';
+    const API_BASE_URL = '<?php echo $apiBase; ?>';
+    const API_STAFF_URL = API_BASE_URL + '/staff';
     const tableBody = document.getElementById('staffTableBody');
     let localStaffCache = []; // cache lokal untuk edit/delete tanpa fetch ulang
 
@@ -514,7 +516,7 @@ $assetBase = $isSubfolder ? '/SLA_MONITORING/public' : '';
         };
 
         try {
-            const response = await fetch('/api/staff/update', {
+            const response = await fetch(API_BASE_URL + '/staff/update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -540,7 +542,7 @@ $assetBase = $isSubfolder ? '/SLA_MONITORING/public' : '';
     // ==========================================
     async function toggleStaffStatus(id, nextState) {
         try {
-            const response = await fetch('/api/staff/toggle', {
+            const response = await fetch(API_BASE_URL + '/staff/toggle', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -577,7 +579,7 @@ $assetBase = $isSubfolder ? '/SLA_MONITORING/public' : '';
         const id = document.getElementById('deleteStaffId').value;
 
         try {
-            const response = await fetch('/api/staff/delete', {
+            const response = await fetch(API_BASE_URL + '/staff/delete', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
