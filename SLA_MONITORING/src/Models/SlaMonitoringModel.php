@@ -97,35 +97,35 @@ class SlaMonitoringModel
 
     public function getOverdue(int $maxSeconds = 180): array
     {
+        // Hanya tiket yang BELUM direspon (time_responded IS NULL), belum diselesaikan manual, dan sudah melewati batas SLA.
         $stmt = $this->db->prepare("
             SELECT s.*, g.group_name 
             FROM ts_sla_monitoring s
             LEFT JOIN ts_group_whitelist g ON s.group_id = g.group_id
-            WHERE (s.time_responded IS NULL AND TIMESTAMPDIFF(SECOND, s.time_received, NOW()) > :max_seconds AND s.is_resolved_by_explanation = 0)
-               OR (s.sla_seconds > :max_seconds_2 AND s.is_resolved_by_explanation = 0)
+            WHERE s.time_responded IS NULL 
+              AND s.is_resolved_by_explanation = 0
+              AND TIMESTAMPDIFF(SECOND, s.time_received, NOW()) > :max_seconds
             ORDER BY s.time_received DESC
         ");
         $stmt->execute([
-            'max_seconds'   => $maxSeconds,
-            'max_seconds_2' => $maxSeconds
+            'max_seconds'   => $maxSeconds
         ]);
         return $stmt->fetchAll();
     }
 
     public function getCompleted(int $maxSeconds = 180): array
     {
-        // Hanya tiket yang BENAR-BENAR selesai tepat waktu (bukan overdue yang
-        // ditutup lewat penjelasan). Overdue yang diselesaikan by penjelasan
-        // punya card sendiri, lihat getOverdueResolved().
+        // Tiket yang sudah direspon oleh staff (baik tepat waktu maupun terlambat)
+        // dan tidak diselesaikan lewat penjelasan manual.
         $stmt = $this->db->prepare("
             SELECT s.*, g.group_name 
             FROM ts_sla_monitoring s
             LEFT JOIN ts_group_whitelist g ON s.group_id = g.group_id
-            WHERE s.sla_seconds <= :max_seconds 
+            WHERE s.time_responded IS NOT NULL 
               AND s.is_resolved_by_explanation = 0
             ORDER BY s.time_received DESC
         ");
-        $stmt->execute(['max_seconds' => $maxSeconds]);
+        $stmt->execute();
         return $stmt->fetchAll();
     }
 
@@ -184,11 +184,10 @@ class SlaMonitoringModel
             SELECT
                 SUM(CASE WHEN time_responded IS NULL AND is_resolved_by_explanation = 0 
                          AND TIMESTAMPDIFF(SECOND, time_received, NOW()) <= 180 THEN 1 ELSE 0 END) AS waiting,
-                SUM(CASE WHEN (time_responded IS NULL AND is_resolved_by_explanation = 0 
-                         AND TIMESTAMPDIFF(SECOND, time_received, NOW()) > 180)
-                         OR (sla_seconds > 180 AND is_resolved_by_explanation = 0) THEN 1 ELSE 0 END) AS overdue,
+                SUM(CASE WHEN time_responded IS NULL AND is_resolved_by_explanation = 0 
+                         AND TIMESTAMPDIFF(SECOND, time_received, NOW()) > 180 THEN 1 ELSE 0 END) AS overdue,
                 SUM(CASE WHEN is_resolved_by_explanation = 1 THEN 1 ELSE 0 END) AS overdue_resolved,
-                SUM(CASE WHEN sla_seconds <= 180 AND is_resolved_by_explanation = 0 THEN 1 ELSE 0 END) AS completed
+                SUM(CASE WHEN time_responded IS NOT NULL AND is_resolved_by_explanation = 0 THEN 1 ELSE 0 END) AS completed
             FROM ts_sla_monitoring
         ");
         $row = $stmt->fetch();
