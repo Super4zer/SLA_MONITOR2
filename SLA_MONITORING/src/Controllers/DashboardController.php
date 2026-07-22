@@ -17,7 +17,8 @@ class DashboardController
     public function getWaiting(): void
     {
         header('Content-Type: application/json');
-        $data = $this->slaModel->getWaiting(180);
+        $groupId = $_GET['group_id'] ?? null;
+        $data = $this->slaModel->getWaiting(180, $groupId);
         echo json_encode([
             'status' => 'success',
             'data' => $data
@@ -27,7 +28,8 @@ class DashboardController
     public function getOverdue(): void
     {
         header('Content-Type: application/json');
-        $data = $this->slaModel->getOverdue(180);
+        $groupId = $_GET['group_id'] ?? null;
+        $data = $this->slaModel->getOverdue(180, $groupId);
         echo json_encode([
             'status' => 'success',
             'data' => $data
@@ -37,7 +39,8 @@ class DashboardController
     public function getCompleted(): void
     {
         header('Content-Type: application/json');
-        $data = $this->slaModel->getCompleted(180);
+        $groupId = $_GET['group_id'] ?? null;
+        $data = $this->slaModel->getCompleted(180, $groupId);
         echo json_encode([
             'status' => 'success',
             'data' => $data
@@ -47,7 +50,8 @@ class DashboardController
     public function getOverdueResolved(): void
     {
         header('Content-Type: application/json');
-        $data = $this->slaModel->getOverdueResolved();
+        $groupId = $_GET['group_id'] ?? null;
+        $data = $this->slaModel->getOverdueResolved($groupId);
         echo json_encode([
             'status' => 'success',
             'data' => $data

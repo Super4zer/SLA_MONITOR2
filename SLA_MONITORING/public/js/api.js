@@ -26,10 +26,12 @@ window.SLA_API = {
       body: JSON.stringify({ username, password }),
     }),
 
-  getWaiting: () => fetchJSON(`${API_BASE}/waiting`),
-  getOverdue: () => fetchJSON(`${API_BASE}/overdue`),
-  getOverdueResolved: () => fetchJSON(`${API_BASE}/overdue-resolved`),
-  getCompleted: () => fetchJSON(`${API_BASE}/completed`),
+  getGroups: () => fetchJSON(`${_slaBase}/index.php/api/groups`),
+
+  getWaiting: (groupId = '') => fetchJSON(`${API_BASE}/waiting` + (groupId ? `?group_id=${encodeURIComponent(groupId)}` : '')),
+  getOverdue: (groupId = '') => fetchJSON(`${API_BASE}/overdue` + (groupId ? `?group_id=${encodeURIComponent(groupId)}` : '')),
+  getOverdueResolved: (groupId = '') => fetchJSON(`${API_BASE}/overdue-resolved` + (groupId ? `?group_id=${encodeURIComponent(groupId)}` : '')),
+  getCompleted: (groupId = '') => fetchJSON(`${API_BASE}/completed` + (groupId ? `?group_id=${encodeURIComponent(groupId)}` : '')),
 
   resolve: (id) =>
     fetchJSON(`${API_BASE}/${id}/resolve`, {

@@ -18,6 +18,132 @@ $assetBase = $isSubfolder ? '/SLA_MONITORING/public' : '';
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="<?php echo $assetBase; ?>/css/style.css" />
+    <style>
+    .custom-dropdown {
+        position: relative;
+        display: inline-block;
+        z-index: 1000;
+    }
+    .dropdown-trigger {
+        background-color: #ffffff;
+        border: 1px solid #e4e6ef;
+        color: #1e1e2d;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 10px;
+        box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.04);
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        outline: none;
+        border-style: solid;
+        height: 38px;
+    }
+    .dropdown-trigger:hover, .dropdown-trigger:focus {
+        border-color: #1c1c24;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    .dropdown-trigger .trigger-arrow {
+        transition: transform 0.2s ease;
+        margin-left: 4px;
+        font-size: 18px;
+        color: #8b8b99;
+    }
+    .custom-dropdown.show .dropdown-trigger .trigger-arrow {
+        transform: rotate(180deg);
+    }
+    .dropdown-menu-list {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        min-width: 240px;
+        background: #ffffff;
+        border: 1px solid #e4e6ef;
+        border-radius: 12px;
+        box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.08);
+        padding: 6px;
+        display: none;
+        flex-direction: column;
+        gap: 2px;
+        z-index: 1050;
+        animation: fadeInDropdown 0.15s ease-out;
+    }
+    @keyframes fadeInDropdown {
+        from {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .custom-dropdown.show .dropdown-menu-list {
+        display: flex;
+    }
+    .dropdown-item-custom {
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #4b5563;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+    .dropdown-item-custom:hover {
+        background-color: #f3f4f6;
+        color: #111827;
+    }
+    .dropdown-item-custom.active {
+        background-color: rgba(28, 28, 36, 0.05);
+        color: #1c1c24;
+        font-weight: 600;
+    }
+    .dropdown-search-wrapper {
+        padding: 4px;
+        border-bottom: 1px solid #e4e6ef;
+        margin-bottom: 6px;
+    }
+    .dropdown-search-input {
+        width: 100% !important;
+        border: 1px solid #e4e6ef !important;
+        border-radius: 8px !important;
+        padding: 6px 10px !important;
+        font-size: 12px !important;
+        outline: none !important;
+        background-color: #f8f9fc !important;
+        transition: all 0.15s ease-in-out;
+    }
+    .dropdown-search-input:focus {
+        border-color: #1c1c24 !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 0 0 2px rgba(28, 28, 36, 0.05) !important;
+    }
+    .dropdown-items-container {
+        max-height: 220px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .dropdown-items-container::-webkit-scrollbar {
+        width: 4px;
+    }
+    .dropdown-items-container::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .dropdown-items-container::-webkit-scrollbar-thumb {
+        background: #e2e2e8;
+        border-radius: 10px;
+    }
+    </style>
 </head>
 
 <body>
@@ -25,8 +151,23 @@ $assetBase = $isSubfolder ? '/SLA_MONITORING/public' : '';
 
         <div class="main-wrapper">
             <header class="topbar">
-                <div>
+                <div class="d-flex align-items-center gap-3">
                     <h4 class="m-0 fw-bold text-dark">Dashboard</h4>
+                    <div class="custom-dropdown" id="group-dropdown-wrapper">
+                        <button type="button" class="dropdown-trigger" id="dropdown-trigger-btn">
+                            <span class="material-symbols-outlined" style="font-size: 16px; color: #8b8b99;">groups</span>
+                            <span id="selected-group-label" style="margin-right: 4px;">Semua Grup (Keseluruhan)</span>
+                            <span class="material-symbols-outlined trigger-arrow">keyboard_arrow_down</span>
+                        </button>
+                        <div class="dropdown-menu-list" id="dropdown-menu-list">
+                            <div class="dropdown-search-wrapper">
+                                <input type="text" id="group-search-input" placeholder="Cari grup..." class="dropdown-search-input" autocomplete="off" />
+                            </div>
+                            <div class="dropdown-items-container" id="dropdown-items-container">
+                                <div class="dropdown-item-custom active" data-value="">Semua Grup (Keseluruhan)</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="tabular-clock" id="live-clock">
                     <span class="material-symbols-outlined fs-6">schedule</span>
