@@ -69,7 +69,7 @@ fi
 # -----------------------------------------------------------
 echo -e "${GREEN}▶  Memulai SLA_MONITOR2 (DSI Log Book) di port 8000...${NC}"
 cd "$SLA_MONITOR_DIR" || exit 1
-php -S localhost:8000 $PHP_INI_ARGS > /tmp/sla_monitor2.log 2>&1 &
+PHP_CLI_SERVER_WORKERS=5 php -S 0.0.0.0:8000 $PHP_INI_ARGS > /tmp/sla_monitor2.log 2>&1 &
 SERVER1_PID=$!
 sleep 0.5
 
@@ -86,7 +86,7 @@ fi
 echo ""
 echo -e "${GREEN}▶  Memulai SLA_MONITORING (Backend API) di port 8001...${NC}"
 cd "$SLA_BACKEND_DIR" || { echo -e "${RED}Folder SLA_MONITORING tidak ditemukan!${NC}"; exit 1; }
-php -S localhost:8001 -t public public/index.php > /tmp/sla_monitoring.log 2>&1 &
+PHP_CLI_SERVER_WORKERS=5 php -S 0.0.0.0:8001 -t public public/index.php > /tmp/sla_monitoring.log 2>&1 &
 SERVER2_PID=$!
 sleep 0.5
 
