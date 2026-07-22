@@ -135,11 +135,19 @@
       const actions = document.createElement('div');
       actions.className = 'ticket-actions';
 
+      const btnEscalate = document.createElement('button');
+      btnEscalate.className = 'btn-action btn-escalate';
+      btnEscalate.textContent = 'Escalate';
+      btnEscalate.onclick = () => {
+        alert('Fungsi eskalasi untuk chat terselesaikan sedang dalam pengembangan / koordinasi dengan client.');
+      };
+
       const btnDetail = document.createElement('button');
       btnDetail.className = 'btn-action btn-detail';
       btnDetail.textContent = 'Detail';
       btnDetail.onclick = () => showDetailModal(ticket);
 
+      actions.appendChild(btnEscalate);
       actions.appendChild(btnDetail);
       footer.appendChild(actions);
     }
@@ -235,11 +243,12 @@
     if (statOverdue) statOverdue.textContent = lateCount;
 
     if (typeof window.updateSlaChart === 'function') {
-      window.updateSlaChart(onTimeCount, lateCount, liveResolvedCount);
+      window.updateSlaChart(onTimeCount, lateCount + liveResolvedLateCount, liveResolvedCount - liveResolvedLateCount);
     }
   }
 
   let liveResolvedCount = 0;
+  let liveResolvedLateCount = 0;
 
   async function refreshDashboard() {
     if (!window.SLA_API) {
@@ -290,6 +299,7 @@
 
       liveUnresolvedTickets = unresolvedTickets;
       liveResolvedCount = resolvedTickets.length;
+      liveResolvedLateCount = resolvedTickets.filter(t => t.status_sla === 'MERAH').length;
 
       if (countUnresolved) countUnresolved.textContent = unresolvedTickets.length;
       if (countResolved) countResolved.textContent = resolvedTickets.length;
