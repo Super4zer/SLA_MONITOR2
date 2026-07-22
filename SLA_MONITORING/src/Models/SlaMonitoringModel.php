@@ -80,69 +80,103 @@ class SlaMonitoringModel
         ]);
     }
 
-    public function getWaiting(int $maxSeconds = 180): array
+    public function getWaiting(int $maxSeconds = 180, ?string $groupId = null): array
     {
-        $stmt = $this->db->prepare("
+        $sql = "
             SELECT s.*, g.group_name 
             FROM ts_sla_monitoring s
             LEFT JOIN ts_group_whitelist g ON s.group_id = g.group_id
             WHERE s.time_responded IS NULL 
               AND s.is_resolved_by_explanation = 0
               AND TIMESTAMPDIFF(SECOND, s.time_received, NOW()) <= :max_seconds
-            ORDER BY s.time_received ASC
-        ");
-        $stmt->execute(['max_seconds' => $maxSeconds]);
+        ";
+        $params = ['max_seconds' => $maxSeconds];
+
+        if ($groupId !== null && $groupId !== '') {
+            $sql .= " AND s.group_id = :group_id";
+            $params['group_id'] = $groupId;
+        }
+
+        $sql .= " ORDER BY s.time_received ASC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 
-    public function getOverdue(int $maxSeconds = 180): array
+    public function getOverdue(int $maxSeconds = 180, ?string $groupId = null): array
     {
         // Hanya tiket yang BELUM direspon (time_responded IS NULL), belum diselesaikan manual, dan sudah melewati batas SLA.
-        $stmt = $this->db->prepare("
+        $sql = "
             SELECT s.*, g.group_name 
             FROM ts_sla_monitoring s
             LEFT JOIN ts_group_whitelist g ON s.group_id = g.group_id
             WHERE s.time_responded IS NULL 
               AND s.is_resolved_by_explanation = 0
               AND TIMESTAMPDIFF(SECOND, s.time_received, NOW()) > :max_seconds
-            ORDER BY s.time_received DESC
-        ");
-        $stmt->execute([
-            'max_seconds'   => $maxSeconds
-        ]);
+        ";
+        $params = ['max_seconds' => $maxSeconds];
+
+        if ($groupId !== null && $groupId !== '') {
+            $sql .= " AND s.group_id = :group_id";
+            $params['group_id'] = $groupId;
+        }
+
+        $sql .= " ORDER BY s.time_received DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 
-    public function getCompleted(int $maxSeconds = 180): array
+    public function getCompleted(int $maxSeconds = 180, ?string $groupId = null): array
     {
         // Tiket yang sudah direspon oleh staff (baik tepat waktu maupun terlambat)
         // dan tidak diselesaikan lewat penjelasan manual.
-        $stmt = $this->db->prepare("
+        $sql = "
             SELECT s.*, g.group_name 
             FROM ts_sla_monitoring s
             LEFT JOIN ts_group_whitelist g ON s.group_id = g.group_id
             WHERE s.time_responded IS NOT NULL 
               AND s.is_resolved_by_explanation = 0
-            ORDER BY s.time_received DESC
-        ");
-        $stmt->execute();
+        ";
+        $params = [];
+
+        if ($groupId !== null && $groupId !== '') {
+            $sql .= " AND s.group_id = :group_id";
+            $params['group_id'] = $groupId;
+        }
+
+        $sql .= " ORDER BY s.time_received DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 
-    public function getOverdueResolved(): array
+    public function getOverdueResolved(?string $groupId = null): array
     {
         // Tiket yang sempat overdue (melewati batas SLA) tapi sudah
         // ditindaklanjuti/ditutup lewat penjelasan. Statusnya tetap MERAH
         // di kolom status_sla (karena memang telat, untuk keperluan audit di
         // Laporan), hanya ditandai is_resolved_by_explanation = 1.
-        $stmt = $this->db->prepare("
+        $sql = "
             SELECT s.*, g.group_name 
             FROM ts_sla_monitoring s
             LEFT JOIN ts_group_whitelist g ON s.group_id = g.group_id
             WHERE s.is_resolved_by_explanation = 1
-            ORDER BY s.time_received DESC
-        ");
-        $stmt->execute();
+        ";
+        $params = [];
+
+        if ($groupId !== null && $groupId !== '') {
+            $sql .= " AND s.group_id = :group_id";
+            $params['group_id'] = $groupId;
+        }
+
+        $sql .= " ORDER BY s.time_received DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 
@@ -178,9 +212,9 @@ class SlaMonitoringModel
         ]);
     }
 
-    public function getSummary(): array
+    public function getSummary(?string $groupId = null): array
     {
-        $stmt = $this->db->query("
+        $sql = "
             SELECT
                 SUM(CASE WHEN time_responded IS NULL AND is_resolved_by_explanation = 0 
                          AND TIMESTAMPDIFF(SECOND, time_received, NOW()) <= 180 THEN 1 ELSE 0 END) AS waiting,
@@ -189,7 +223,15 @@ class SlaMonitoringModel
                 SUM(CASE WHEN is_resolved_by_explanation = 1 THEN 1 ELSE 0 END) AS overdue_resolved,
                 SUM(CASE WHEN time_responded IS NOT NULL AND is_resolved_by_explanation = 0 THEN 1 ELSE 0 END) AS completed
             FROM ts_sla_monitoring
-        ");
+        ";
+        $params = [];
+        if ($groupId !== null && $groupId !== '') {
+            $sql .= " WHERE group_id = :group_id";
+            $params['group_id'] = $groupId;
+        }
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         $row = $stmt->fetch();
         return [
             'waiting'          => (int) ($row['waiting'] ?? 0),

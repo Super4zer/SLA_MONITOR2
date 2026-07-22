@@ -19,6 +19,14 @@
   const statOverdue = document.getElementById('stat-overdue');     // unresolved & sudah lewat SLA
   const statCompleted = document.getElementById('stat-completed'); // total sudah terselesaikan
 
+  const groupDropdownWrapper = document.getElementById('group-dropdown-wrapper');
+  const dropdownTriggerBtn = document.getElementById('dropdown-trigger-btn');
+  const selectedGroupLabel = document.getElementById('selected-group-label');
+  const dropdownMenuList = document.getElementById('dropdown-menu-list');
+  const groupSearchInput = document.getElementById('group-search-input');
+  const dropdownItemsContainer = document.getElementById('dropdown-items-container');
+  let currentGroupId = '';
+
   // Menyimpan ticket unresolved yang sedang tampil, supaya timer bisa jalan
   // tiap detik tanpa perlu render ulang / fetch ulang ke server.
   let liveUnresolvedTickets = [];
@@ -241,10 +249,10 @@
 
     try {
       const [waitingRes, overdueRes, overdueResolvedRes, completedRes] = await Promise.all([
-        window.SLA_API.getWaiting(),
-        window.SLA_API.getOverdue(),
-        window.SLA_API.getOverdueResolved(),
-        window.SLA_API.getCompleted()
+        window.SLA_API.getWaiting(currentGroupId),
+        window.SLA_API.getOverdue(currentGroupId),
+        window.SLA_API.getOverdueResolved(currentGroupId),
+        window.SLA_API.getCompleted(currentGroupId)
       ]);
 
       const resolvedRaw = [
@@ -298,6 +306,89 @@
   }
 
   window.addEventListener('DOMContentLoaded', () => {
+    // Toggle dropdown open/close
+    if (dropdownTriggerBtn && groupDropdownWrapper) {
+      dropdownTriggerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = groupDropdownWrapper.classList.toggle('show');
+        if (isOpen && groupSearchInput && dropdownItemsContainer) {
+          groupSearchInput.value = '';
+          dropdownItemsContainer.querySelectorAll('.dropdown-item-custom').forEach(item => {
+            item.style.setProperty('display', 'flex', 'important');
+          });
+          setTimeout(() => groupSearchInput.focus(), 50);
+        }
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', () => {
+        groupDropdownWrapper.classList.remove('show');
+      });
+    }
+
+    // Search filter logic
+    if (groupSearchInput && dropdownItemsContainer) {
+      groupSearchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        dropdownItemsContainer.querySelectorAll('.dropdown-item-custom').forEach(item => {
+          const text = item.textContent.toLowerCase();
+          if (text.includes(query)) {
+            item.style.setProperty('display', 'flex', 'important');
+          } else {
+            item.style.setProperty('display', 'none', 'important');
+          }
+        });
+      });
+
+      // Stop propagation of click events inside search input so it doesn't close the dropdown
+      groupSearchInput.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
+
+    // Ambil daftar grup dan masukkan ke dalam dropdown items container
+    if (dropdownItemsContainer && window.SLA_API) {
+      window.SLA_API.getGroups().then(res => {
+        if (res && res.status === 'success' && Array.isArray(res.data)) {
+          res.data.forEach(group => {
+            if (group.is_active == 1) {
+              const item = document.createElement('div');
+              item.className = 'dropdown-item-custom';
+              item.dataset.value = group.group_id;
+              item.textContent = group.group_name;
+              dropdownItemsContainer.appendChild(item);
+            }
+          });
+          
+          // Add click listener to all items (including the default "Semua Grup")
+          dropdownItemsContainer.addEventListener('click', (e) => {
+            const item = e.target.closest('.dropdown-item-custom');
+            if (!item) return;
+
+            // Remove active class from previous
+            dropdownItemsContainer.querySelectorAll('.dropdown-item-custom').forEach(el => el.classList.remove('active'));
+            
+            // Add active to current
+            item.classList.add('active');
+
+            // Update label & state
+            if (selectedGroupLabel) {
+              selectedGroupLabel.textContent = item.textContent;
+            }
+            currentGroupId = item.dataset.value || '';
+
+            // Close dropdown
+            groupDropdownWrapper.classList.remove('show');
+
+            // Refresh dashboard data
+            refreshDashboard();
+          });
+        }
+      }).catch(err => {
+        console.error("Gagal memuat daftar grup:", err);
+      });
+    }
+
     refreshDashboard();
     setInterval(refreshDashboard, REFRESH_INTERVAL_MS);
     setInterval(tickLiveTimers, TICK_INTERVAL_MS);
