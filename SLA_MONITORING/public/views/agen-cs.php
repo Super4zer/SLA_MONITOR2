@@ -78,7 +78,6 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
         line-height: 1.4;
     }
 
-    /* Custom Dark Modal Command Center */
     .modal-cmd-content {
         background-color: #1c1c24;
         color: #ffffff;
@@ -114,7 +113,6 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
         font-weight: 500;
     }
 
-    /* Status Pill (Aktif / Nonaktif) */
     .status-pill {
         display: inline-flex;
         align-items: center;
@@ -150,7 +148,6 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
         background-color: rgba(59, 130, 246, 0.1);
     }
 
-    /* Avatar inisial pada tabel staff */
     .staff-avatar {
         width: 34px;
         height: 34px;
@@ -289,8 +286,10 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
                                     Daftar Agent CS Terdaftar
                                 </div>
                                 <div class="position-relative">
+                                    <!-- INPUT PENCARIAN -->
                                     <input type="text" id="staffSearchInput" class="form-control form-control-sm ps-4"
-                                        placeholder="Cari nama atau nomor HP..." style="width: 250px; border-radius: 8px" />
+                                        placeholder="Ketik nama (misal: andi)..."
+                                        style="width: 250px; border-radius: 8px; border: 1px solid #d1d5db; transition: all 0.3s;" />
                                     <span class="material-symbols-outlined position-absolute" style="
                         top: 8px;
                         left: 10px;
@@ -358,12 +357,8 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
         notifTitle.textContent = title;
         notifMsg.textContent = message;
 
-        setTimeout(() => {
-            notifBox.classList.add('show');
-        }, 50);
-        notifTimeout = setTimeout(() => {
-            notifBox.classList.remove('show');
-        }, 3500);
+        setTimeout(() => notifBox.classList.add('show'), 50);
+        notifTimeout = setTimeout(() => notifBox.classList.remove('show'), 3500);
     }
 
     function escapeHtml(str) {
@@ -372,50 +367,59 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
         return div.innerHTML;
     }
 
+    // PERBAIKAN BUG: Penulisan getInitials sebelumnya berisiko error syntax di browser tertentu
     function getInitials(name) {
-        if (!name) return '?';
+        if (!name || name === '-') return '?';
         const parts = name.trim().split(/\s+/);
-        return (parts[0]?.[0] || '') + (parts.length > 1 ? parts[parts.length - 1][0] : '');
+        const first = parts[0] ? parts[0].charAt(0) : '';
+        const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : '';
+        return first + last;
     }
 
-    // 3. Global State
+    // 3. Global State & API Constants
     const API_BASE_URL = '<?php echo $apiBase; ?>';
     const API_STAFF_URL = API_BASE_URL + '/staff';
     const tableBody = document.getElementById('staffTableBody');
-    let localStaffCache = []; // cache lokal untuk edit/delete tanpa fetch ulang
+    let localStaffCache = []; // Menyimpan data asli agar siap difilter seketika
 
     function renderStaffRows(staffList) {
-        if (!staffList || staffList.length === 0) {
+        if (!Array.isArray(staffList) || staffList.length === 0) {
             tableBody.innerHTML =
-                '<tr><td colspan="5" class="text-center text-muted">Tidak ada agent CS yang cocok</td></tr>';
+                '<tr><td colspan="5" class="text-center text-muted py-4">Tidak ada data yang cocok dengan pencarian Anda.</td></tr>';
             return;
         }
 
         tableBody.innerHTML = staffList.map((staff, index) => {
-            const isActive = Number(staff.is_active) === 1;
+            // Mencakup berbagai kemungkinan nama kolom dari backend
+            const staffName = staff.staff_name || staff.Staff_Name || staff.nama_staff || staff.nama || staff
+                .name || '-';
+            const staffPhone = staff.phone_number || staff.Phone_Number || staff.no_hp || staff.phone || '-';
+            const staffId = staff.id || staff.Id || staff.ID || 0;
+            const isActive = Number(staff.is_active || staff.Is_Active || staff.status || 0) === 1;
+
             return `
                 <tr>
                     <td class="fw-medium text-muted">${index + 1}</td>
                     <td>
                         <div class="d-flex align-items-center gap-2">
-                            <span class="staff-avatar">${escapeHtml(getInitials(staff.staff_name)).toUpperCase()}</span>
-                            <span class="fw-medium">${escapeHtml(staff.staff_name)}</span>
+                            <span class="staff-avatar">${escapeHtml(getInitials(staffName)).toUpperCase()}</span>
+                            <span class="fw-medium">${escapeHtml(staffName)}</span>
                         </div>
                     </td>
-                    <td class="font-monospace text-secondary">${escapeHtml(staff.phone_number)}</td>
+                    <td class="font-monospace text-secondary">${escapeHtml(staffPhone)}</td>
                     <td>
                         <span class="status-pill ${isActive ? 'active' : 'inactive'}">
                             <span class="dot"></span> ${isActive ? 'Aktif' : 'Nonaktif'}
                         </span>
                     </td>
                     <td class="text-center">
-                        <button class="action-btn toggle" title="${isActive ? 'Nonaktifkan' : 'Aktifkan'}" onclick="toggleStaffStatus(${staff.id}, ${isActive ? 0 : 1})">
+                        <button class="action-btn toggle" title="${isActive ? 'Nonaktifkan' : 'Aktifkan'}" onclick="toggleStaffStatus(${staffId}, ${isActive ? 0 : 1})">
                             <span class="material-symbols-outlined">${isActive ? 'toggle_on' : 'toggle_off'}</span>
                         </button>
-                        <button class="action-btn edit" title="Edit Data" onclick="openEditStaffModal(${staff.id})">
+                        <button class="action-btn edit" title="Edit Data" onclick="openEditStaffModal(${staffId})">
                             <span class="material-symbols-outlined">edit_square</span>
                         </button>
-                        <button class="action-btn delete" title="Hapus Data" onclick="openDeleteStaffModal(${staff.id})">
+                        <button class="action-btn delete" title="Hapus Data" onclick="openDeleteStaffModal(${staffId})">
                             <span class="material-symbols-outlined">delete</span>
                         </button>
                     </td>
@@ -424,38 +428,70 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
         }).join('');
     }
 
-    // Load Data
-    async function loadStaff(keyword = '') {
+    // 4. Load Data dari Server
+    async function loadStaff() {
         tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Memuat data...</td></tr>';
         try {
-            const url = keyword ? `${API_STAFF_URL}?q=${encodeURIComponent(keyword)}` : API_STAFF_URL;
-            const response = await fetch(url);
+            const response = await fetch(API_STAFF_URL);
             const result = await response.json();
 
-            if (result.status === 'success') {
-                if (!keyword) {
-                    localStaffCache = result.data; // simpan cache lengkap hanya saat tanpa filter
-                }
-                renderStaffRows(result.data);
-            } else {
-                tableBody.innerHTML =
-                    '<tr><td colspan="5" class="text-center text-danger">Gagal memuat data</td></tr>';
+            let extractedData = [];
+            if (Array.isArray(result)) {
+                extractedData = result;
+            } else if (result && Array.isArray(result.data)) {
+                extractedData = result.data;
+            } else if (result && result.data && Array.isArray(result.data.data)) {
+                extractedData = result.data.data;
             }
+
+            localStaffCache = extractedData;
+            applySearchFilter(); // Segarkan tampilan tabel (dengan filter yang mungkin sedang aktif)
+
         } catch (error) {
             tableBody.innerHTML =
-                '<tr><td colspan="5" class="text-center text-danger">Gagal terhubung ke server</td></tr>';
+                '<tr><td colspan="5" class="text-center text-danger">Gagal terhubung ke server.</td></tr>';
         }
     }
 
-    // 4. Fitur Pencarian Agent CS (client-side, langsung ke API agar konsisten dgn data terbaru)
-    let searchDebounce;
-    document.getElementById('staffSearchInput').addEventListener('input', (e) => {
-        clearTimeout(searchDebounce);
-        const keyword = e.target.value.trim();
-        searchDebounce = setTimeout(() => loadStaff(keyword), 300);
-    });
+    // =========================================================================
+    // 5. FITUR SEARCH REAL-TIME (Langsung memfilter tabel begitu diketik)
+    // =========================================================================
+    function applySearchFilter() {
+        const searchInput = document.getElementById('staffSearchInput');
+        if (!searchInput) return;
 
-    // 5. Tambah Data (Create)
+        const keyword = searchInput.value.trim().toLowerCase();
+
+        if (!Array.isArray(localStaffCache)) return;
+
+        // Jika kotak pencarian kosong, tampilkan semua
+        if (keyword === '') {
+            renderStaffRows(localStaffCache);
+            return;
+        }
+
+        // UNIVERSAL SEARCH: Mencari kecocokan huruf di SELURUH data object agent CS
+        const filtered = localStaffCache.filter(staff => {
+            // Mengubah seluruh nilai pada data (nama, id, no hp, dsb) menjadi string panjang, 
+            // lalu dicek apakah kata yang diketik ada di dalam string tersebut.
+            return Object.values(staff).some(val =>
+                String(val).toLowerCase().includes(keyword)
+            );
+        });
+
+        renderStaffRows(filtered);
+    }
+
+    // KUNCI UTAMA: Menangkap setiap ketikan user ('input') secara real-time
+    const searchElement = document.getElementById('staffSearchInput');
+    if (searchElement) {
+        searchElement.addEventListener('input', applySearchFilter);
+    }
+
+
+    // ==========================================
+    // 6. LOGIKA TOMBOL TAMBAH (CREATE)
+    // ==========================================
     document.getElementById('staffForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btnSubmit = e.target.querySelector('button[type="submit"]');
@@ -476,13 +512,13 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
             });
             const result = await response.json();
 
-            if (result.status === 'success') {
-                showCmdNotification('Registrasi Sukses', 'Agent CS telah ditambahkan ke database.', 'success');
+            if (result.status === 'success' || response.ok) {
+                showCmdNotification('Registrasi Sukses', 'Agent CS telah ditambahkan.', 'success');
                 document.getElementById('staffForm').reset();
                 document.getElementById('staffSearchInput').value = '';
                 loadStaff();
             } else {
-                showCmdNotification('Gagal Menyimpan', result.message, 'error');
+                showCmdNotification('Gagal Menyimpan', result.message || 'Error internal server', 'error');
             }
         } catch (error) {
             showCmdNotification('Koneksi Terputus', 'Gagal menghubungi server.', 'error');
@@ -492,25 +528,26 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
     });
 
     // ==========================================
-    // 6. LOGIKA TOMBOL EDIT
+    // 7. LOGIKA EDIT
     // ==========================================
     const bsEditStaffModal = new bootstrap.Modal(document.getElementById('editStaffModal'));
 
     function openEditStaffModal(id) {
-        const target = localStaffCache.find(s => s.id == id);
+        const target = localStaffCache.find(s => s.id == id || s.Id == id || s.ID == id);
         if (target) {
-            document.getElementById('editStaffId').value = target.id;
-            document.getElementById('editStaffPhone').value = target.phone_number;
-            document.getElementById('editStaffName').value = target.staff_name;
+            document.getElementById('editStaffId').value = target.id || target.Id || target.ID;
+            document.getElementById('editStaffPhone').value = target.phone_number || target.Phone_Number || target
+                .phone || target.no_hp || '';
+            document.getElementById('editStaffName').value = target.staff_name || target.Staff_Name || target.nama ||
+                target.name || '';
             bsEditStaffModal.show();
         }
     }
 
     document.getElementById('editStaffForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const id = document.getElementById('editStaffId').value;
         const payload = {
-            id: id,
+            id: document.getElementById('editStaffId').value,
             phone_number: document.getElementById('editStaffPhone').value,
             staff_name: document.getElementById('editStaffName').value
         };
@@ -525,12 +562,12 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
             });
             const result = await response.json();
 
-            if (result.status === 'success') {
-                showCmdNotification('Update Sukses', 'Data agent CS berhasil diperbarui.', 'success');
+            if (result.status === 'success' || response.ok) {
+                showCmdNotification('Update Sukses', 'Data berhasil diperbarui.', 'success');
                 bsEditStaffModal.hide();
-                loadStaff(document.getElementById('staffSearchInput').value.trim());
+                loadStaff();
             } else {
-                showCmdNotification('Update Gagal', result.message, 'error');
+                showCmdNotification('Update Gagal', result.message || 'Error', 'error');
             }
         } catch (error) {
             showCmdNotification('Error Sistem', 'Gagal melakukan pembaruan.', 'error');
@@ -538,7 +575,7 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
     });
 
     // ==========================================
-    // 7. LOGIKA TOGGLE AKTIF / NONAKTIF
+    // 8. LOGIKA TOGGLE & DELETE
     // ==========================================
     async function toggleStaffStatus(id, nextState) {
         try {
@@ -554,20 +591,17 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
             });
             const result = await response.json();
 
-            if (result.status === 'success') {
-                showCmdNotification('Status Diperbarui', result.message, 'success');
-                loadStaff(document.getElementById('staffSearchInput').value.trim());
+            if (result.status === 'success' || response.ok) {
+                showCmdNotification('Status Diperbarui', result.message || 'Sukses', 'success');
+                loadStaff();
             } else {
-                showCmdNotification('Gagal Mengubah Status', result.message, 'error');
+                showCmdNotification('Gagal', result.message || 'Gagal ubah status', 'error');
             }
         } catch (error) {
-            showCmdNotification('Error Jaringan', 'Gagal memproses perubahan status.', 'error');
+            showCmdNotification('Error', 'Gagal memproses perubahan.', 'error');
         }
     }
 
-    // ==========================================
-    // 8. LOGIKA TOMBOL DELETE
-    // ==========================================
     const bsDeleteStaffModal = new bootstrap.Modal(document.getElementById('deleteStaffModal'));
 
     function openDeleteStaffModal(id) {
@@ -577,7 +611,6 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
 
     document.getElementById('btnConfirmDeleteStaff').addEventListener('click', async () => {
         const id = document.getElementById('deleteStaffId').value;
-
         try {
             const response = await fetch(API_BASE_URL + '/staff/delete', {
                 method: 'POST',
@@ -590,19 +623,19 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
             });
             const result = await response.json();
 
-            if (result.status === 'success') {
-                showCmdNotification('Data Dihapus', 'Agent CS berhasil dihapus dari whitelist.', 'success');
+            if (result.status === 'success' || response.ok) {
+                showCmdNotification('Dihapus', 'Data berhasil dihapus.', 'success');
                 bsDeleteStaffModal.hide();
-                loadStaff(document.getElementById('staffSearchInput').value.trim());
+                loadStaff();
             } else {
-                showCmdNotification('Gagal Hapus', result.message, 'error');
+                showCmdNotification('Gagal', result.message || 'Error saat menghapus', 'error');
             }
         } catch (error) {
-            showCmdNotification('Error Jaringan', 'Gagal memproses penghapusan.', 'error');
+            showCmdNotification('Error', 'Gagal memproses penghapusan.', 'error');
         }
     });
 
-    // Jalankan pertama kali halaman dibuka
+    // Mulai eksekusi saat halaman siap
     document.addEventListener('DOMContentLoaded', () => loadStaff());
     </script>
 </body>

@@ -241,8 +241,10 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
                                     Daftar Grub Terdaftar
                                 </div>
                                 <div class="position-relative">
-                                    <input type="text" class="form-control form-control-sm ps-4"
-                                        placeholder="Cari grub..." style="width: 250px; border-radius: 8px" />
+                                    <!-- INPUT PENCARIAN -->
+                                    <input type="text" id="groupSearchInput" class="form-control form-control-sm ps-4"
+                                        placeholder="Ketik nama atau ID grub..."
+                                        style="width: 250px; border-radius: 8px; border: 1px solid #d1d5db; transition: all 0.3s;" />
                                     <span class="material-symbols-outlined position-absolute" style="
                         top: 8px;
                         left: 10px;
@@ -309,55 +311,115 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
         notifTitle.textContent = title;
         notifMsg.textContent = message;
 
-        setTimeout(() => {
-            notifBox.classList.add('show');
-        }, 50);
-        notifTimeout = setTimeout(() => {
-            notifBox.classList.remove('show');
-        }, 3500);
+        setTimeout(() => notifBox.classList.add('show'), 50);
+        notifTimeout = setTimeout(() => notifBox.classList.remove('show'), 3500);
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str ?? '';
+        return div.innerHTML;
     }
 
     // 3. Global State untuk Cache Data Tabel
     const API_BASE_URL = '<?php echo $apiBase; ?>';
     const API_GROUP_URL = API_BASE_URL + '/groups';
     const tableBody = document.getElementById('grubTableBody');
-    let localGroupsCache = []; // Menyimpan data sementara untuk kemudahan Edit
+    let localGroupsCache = []; // Menyimpan data sementara untuk kemudahan Edit dan Filter (Search)
 
-    // Load Data
+    // FUNGSI RENDER TABEL (Dipisahkan agar bisa dipanggil saat search)
+    function renderGroupRows(groupList) {
+        if (!Array.isArray(groupList) || groupList.length === 0) {
+            tableBody.innerHTML =
+                '<tr><td colspan="4" class="text-center text-muted py-4">Tidak ada data grub yang cocok.</td></tr>';
+            return;
+        }
+
+        tableBody.innerHTML = groupList.map((group, index) => {
+            // Toleransi nama kolom dari API (mengantisipasi null atau huruf besar-kecil)
+            const groupId = group.group_id || group.Group_Id || group.id_grub || '-';
+            const groupName = group.group_name || group.Group_Name || group.nama_grub || group.name || '-';
+            const dbId = group.id || group.Id || group.ID || 0;
+
+            return `
+                <tr>
+                    <td class="fw-medium text-muted">${index + 1}</td>
+                    <td class="font-monospace text-secondary">${escapeHtml(groupId)}</td>
+                    <td class="fw-medium">${escapeHtml(groupName)}</td>
+                    <td class="text-center">
+                        <button class="action-btn edit" title="Edit Data" onclick="openEditModal(${dbId})">
+                            <span class="material-symbols-outlined">edit_square</span>
+                        </button>
+                        <button class="action-btn delete" title="Hapus Data" onclick="openDeleteModal(${dbId})">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // 4. Load Data & Ekstraksi Cerdas
     async function loadGroups() {
         tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Memuat data...</td></tr>';
         try {
             const response = await fetch(API_GROUP_URL);
             const result = await response.json();
 
-            if (result.status === 'success' && result.data.length > 0) {
-                localGroupsCache = result.data; // Simpan di cache lokal
-                tableBody.innerHTML = result.data.map((group, index) => `
-                    <tr>
-                        <td class="fw-medium text-muted">${index + 1}</td>
-                        <td class="font-monospace text-secondary">${group.group_id}</td>
-                        <td class="fw-medium">${group.group_name}</td>
-                        <td class="text-center">
-                            <button class="action-btn edit" title="Edit Data" onclick="openEditModal(${group.id})">
-                                <span class="material-symbols-outlined">edit_square</span>
-                            </button>
-                            <button class="action-btn delete" title="Hapus Data" onclick="openDeleteModal(${group.id})">
-                                <span class="material-symbols-outlined">delete</span>
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-            } else {
-                tableBody.innerHTML =
-                    '<tr><td colspan="4" class="text-center text-muted">Belum ada grup yang terdaftar</td></tr>';
+            let extractedData = [];
+            if (Array.isArray(result)) {
+                extractedData = result;
+            } else if (result && Array.isArray(result.data)) {
+                extractedData = result.data;
+            } else if (result && result.data && Array.isArray(result.data.data)) {
+                extractedData = result.data.data;
             }
+
+            localGroupsCache = extractedData;
+            applySearchFilter(); // Segarkan tampilan dan terapkan filter jika ada yang sedang diketik
+
         } catch (error) {
             tableBody.innerHTML =
-                '<tr><td colspan="4" class="text-center text-danger">Gagal terhubung ke server</td></tr>';
+                '<tr><td colspan="4" class="text-center text-danger">Gagal terhubung ke server.</td></tr>';
         }
     }
 
-    // 4. Tambah Data (Create)
+    // =========================================================================
+    // 5. FITUR SEARCH REAL-TIME (Universal Deep Search)
+    // =========================================================================
+    function applySearchFilter() {
+        const searchInput = document.getElementById('groupSearchInput');
+        if (!searchInput) return;
+
+        const keyword = searchInput.value.trim().toLowerCase();
+
+        if (!Array.isArray(localGroupsCache)) return;
+
+        // Tampilkan semua data jika input dikosongkan
+        if (keyword === '') {
+            renderGroupRows(localGroupsCache);
+            return;
+        }
+
+        // Mencari kecocokan huruf di seluruh isi data object
+        const filtered = localGroupsCache.filter(group => {
+            return Object.values(group).some(val =>
+                String(val).toLowerCase().includes(keyword)
+            );
+        });
+
+        renderGroupRows(filtered);
+    }
+
+    // Dengarkan event saat user mengetik ('input' mentrigger secara instan)
+    const searchElement = document.getElementById('groupSearchInput');
+    if (searchElement) {
+        searchElement.addEventListener('input', applySearchFilter);
+    }
+
+    // ==========================================
+    // 6. LOGIKA TOMBOL TAMBAH (CREATE)
+    // ==========================================
     document.getElementById('grubForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btnSubmit = e.target.querySelector('button[type="submit"]');
@@ -378,13 +440,14 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
             });
             const result = await response.json();
 
-            if (result.status === 'success') {
+            if (result.status === 'success' || response.ok) {
                 showCmdNotification('Registrasi Sukses', 'Data grup telah ditambahkan ke database.',
                     'success');
                 document.getElementById('grubForm').reset();
+                document.getElementById('groupSearchInput').value = ''; // Reset pencarian setelah sukses
                 loadGroups();
             } else {
-                showCmdNotification('Gagal Menyimpan', result.message, 'error');
+                showCmdNotification('Gagal Menyimpan', result.message || 'Error Server', 'error');
             }
         } catch (error) {
             showCmdNotification('Koneksi Terputus', 'Gagal menghubungi server.', 'error');
@@ -395,17 +458,19 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
     });
 
     // ==========================================
-    // 5. LOGIKA TOMBOL EDIT (FORM MODAL & PUT FETCH)
+    // 7. LOGIKA TOMBOL EDIT (FORM MODAL)
     // ==========================================
     const bsEditModal = new bootstrap.Modal(document.getElementById('editGrubModal'));
 
     function openEditModal(id) {
-        // Cari objek grup di data lokal cache berdasarkan id database
-        const targetGroup = localGroupsCache.find(g => g.id == id);
+        // Toleransi perbedaan penamaan ID saat mencari target
+        const targetGroup = localGroupsCache.find(g => g.id == id || g.Id == id || g.ID == id);
         if (targetGroup) {
-            document.getElementById('editId').value = targetGroup.id;
-            document.getElementById('editGrubId').value = targetGroup.group_id;
-            document.getElementById('editGrubName').value = targetGroup.group_name;
+            document.getElementById('editId').value = targetGroup.id || targetGroup.Id || targetGroup.ID;
+            document.getElementById('editGrubId').value = targetGroup.group_id || targetGroup.Group_Id || targetGroup
+                .id_grub || '';
+            document.getElementById('editGrubName').value = targetGroup.group_name || targetGroup.Group_Name ||
+                targetGroup.nama_grub || targetGroup.name || '';
             bsEditModal.show();
         }
     }
@@ -429,12 +494,12 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
             });
             const result = await response.json();
 
-            if (result.status === 'success') {
+            if (result.status === 'success' || response.ok) {
                 showCmdNotification('Update Sukses', 'Perubahan data grup berhasil diperbarui.', 'success');
                 bsEditModal.hide();
                 loadGroups();
             } else {
-                showCmdNotification('Update Gagal', result.message, 'error');
+                showCmdNotification('Update Gagal', result.message || 'Error', 'error');
             }
         } catch (error) {
             showCmdNotification('Error Sistem', 'Gagal melakukan pembaruan.', 'error');
@@ -442,7 +507,7 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
     });
 
     // ==========================================
-    // 6. LOGIKA TOMBOL DELETE (CONFIRM MODAL & POST FETCH)
+    // 8. LOGIKA TOMBOL DELETE (CONFIRM MODAL)
     // ==========================================
     const bsDeleteModal = new bootstrap.Modal(document.getElementById('deleteGrubModal'));
 
@@ -466,12 +531,12 @@ $apiBase = $isSubfolder ? '/SLA_MONITORING/public/index.php/api' : '/api';
             });
             const result = await response.json();
 
-            if (result.status === 'success') {
+            if (result.status === 'success' || response.ok) {
                 showCmdNotification('Data Dihapus', 'Grup berhasil dihapus dari whitelist.', 'success');
                 bsDeleteModal.hide();
                 loadGroups();
             } else {
-                showCmdNotification('Gagal Hapus', result.message, 'error');
+                showCmdNotification('Gagal Hapus', result.message || 'Gagal menghapus', 'error');
             }
         } catch (error) {
             showCmdNotification('Error Jaringan', 'Gagal memproses penghapusan.', 'error');
