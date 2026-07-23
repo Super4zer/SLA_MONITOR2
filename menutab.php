@@ -627,7 +627,7 @@ $show_produksi = (
     <a href='index.php?par=78'>Dashboard</a>
     <a href='index.php?par=79'>Agen CS</a>
     <a href='index.php?par=80'>Grup</a>
-    <a href='index.php?par=81'>Laporan</a>
+    <a href='index.php?par=81'>Log CS</a>
   </div>
 
   <?php // ========== DROPDOWN: MAGANG ========== ?>
