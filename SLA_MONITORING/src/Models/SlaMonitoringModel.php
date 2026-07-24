@@ -88,6 +88,7 @@ class SlaMonitoringModel
             LEFT JOIN ts_group_whitelist g ON s.group_id = g.group_id
             WHERE s.time_responded IS NULL 
               AND s.is_resolved_by_explanation = 0
+              AND DATE(s.time_received) = CURDATE()
               AND TIMESTAMPDIFF(SECOND, s.time_received, NOW()) <= :max_seconds
         ";
         $params = ['max_seconds' => $maxSeconds];
@@ -113,6 +114,7 @@ class SlaMonitoringModel
             LEFT JOIN ts_group_whitelist g ON s.group_id = g.group_id
             WHERE s.time_responded IS NULL 
               AND s.is_resolved_by_explanation = 0
+              AND DATE(s.time_received) = CURDATE()
               AND TIMESTAMPDIFF(SECOND, s.time_received, NOW()) > :max_seconds
         ";
         $params = ['max_seconds' => $maxSeconds];
@@ -139,6 +141,7 @@ class SlaMonitoringModel
             LEFT JOIN ts_group_whitelist g ON s.group_id = g.group_id
             WHERE s.time_responded IS NOT NULL 
               AND s.is_resolved_by_explanation = 0
+              AND DATE(s.time_received) = CURDATE()
         ";
         $params = [];
 
@@ -165,6 +168,7 @@ class SlaMonitoringModel
             FROM ts_sla_monitoring s
             LEFT JOIN ts_group_whitelist g ON s.group_id = g.group_id
             WHERE s.is_resolved_by_explanation = 1
+              AND DATE(s.time_received) = CURDATE()
         ";
         $params = [];
 
@@ -223,6 +227,7 @@ class SlaMonitoringModel
                 SUM(CASE WHEN is_resolved_by_explanation = 1 THEN 1 ELSE 0 END) AS overdue_resolved,
                 SUM(CASE WHEN time_responded IS NOT NULL AND is_resolved_by_explanation = 0 THEN 1 ELSE 0 END) AS completed
             FROM ts_sla_monitoring
+            WHERE DATE(time_received) = CURDATE()
         ";
         $params = [];
         if ($groupId !== null && $groupId !== '') {
